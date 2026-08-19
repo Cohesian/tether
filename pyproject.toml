@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cohesian-tether"
+version = "0.2.0"
+description = "Bridge K resource targets and contributor-owned stores"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+
+[project.scripts]
+tether = "tether.cli:main"
+
+[tool.setuptools]
+packages = ["tether"]
