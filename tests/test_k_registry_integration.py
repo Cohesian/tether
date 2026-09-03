@@ -10,7 +10,7 @@ K_ROOT = REPOSITORIES_ROOT / "k-graph"
 K_TOOLING = K_ROOT / "tooling"
 sys.path.insert(0, str(K_TOOLING))
 
-from tether import discover_contributor, load_contributor, validate_contributor  # noqa: E402
+from tether import compare_k_registry, discover_contributor, load_contributor  # noqa: E402
 
 try:
     from to_neo4j import load_directory_graph  # noqa: E402
@@ -20,11 +20,27 @@ except SystemExit:
 
 def accepted_resources(graph: object, contributor: str) -> set[tuple[str, str, str]]:
     return {
-        (node.id, domain, content_format)
+        (node.id, "/".join(resource.hierarchy), resource.key)
         for node in graph.nodes.values()
-        for domain, formats in node.contributors.get(contributor, {}).items()
-        for content_format in formats
+        for resource in node.contributions
+        if resource.contributor == contributor
     }
+
+
+def accepted_records(graph: object, contributor: str) -> list[dict[str, object]]:
+    return [
+        {
+            "node_id": node.id,
+            "contributor": resource.contributor,
+            "hierarchy": list(resource.hierarchy),
+            "key": resource.key,
+            "protocol": resource.protocol,
+            "sha256": resource.sha256,
+        }
+        for node in graph.nodes.values()
+        for resource in node.contributions
+        if resource.contributor == contributor
+    ]
 
 
 def exposed_resources(package_path: Path) -> set[tuple[str, str, str]]:
@@ -48,12 +64,16 @@ class KRegistryIntegrationTests(unittest.TestCase):
         if cls.graph.errors:
             raise AssertionError("invalid K graph: " + "; ".join(cls.graph.errors))
 
-    def test_research_v2_is_valid_during_k_registry_transition(self) -> None:
+    def test_research_matches_every_accepted_k_record(self) -> None:
         package = load_contributor(REPOSITORIES_ROOT / "research")
-        self.assertEqual(package["version"], 2)
-        result = validate_contributor(package)
+        result = compare_k_registry(
+            package,
+            accepted_records(self.graph, "research"),
+        )
         self.assertTrue(result["valid"])
-        self.assertGreater(result["resources"], 0)
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["unregistered"], [])
+        self.assertEqual(result["mismatched"], [])
 
     def test_studio_exposes_every_accepted_resource(self) -> None:
         self.assertEqual(
