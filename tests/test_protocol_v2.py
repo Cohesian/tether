@@ -307,6 +307,28 @@ class ResourceDigestTests(unittest.TestCase):
         with self.assertRaisesRegex(ResolverError, "missing required members"):
             resource_digest(project, "loci-project@1")
 
+    def test_python_project_digest_ignores_runtime_state(self) -> None:
+        project = self.root / "project"
+        project.mkdir()
+        (project / "pyproject.toml").write_text("[project]\n", encoding="utf-8")
+        (project / "main.py").write_text("print('hello')\n", encoding="utf-8")
+        first = resource_digest(project, "python-project@1")
+        for relative in (
+            ".pixi/env/python",
+            ".cache/state",
+            ".pytest_cache/state",
+            ".mypy_cache/state",
+            ".ruff_cache/state",
+            ".tox/state",
+            ".nox/state",
+            ".ipynb_checkpoints/state",
+            "outputs/run.json",
+        ):
+            path = project / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("machine-local\n", encoding="utf-8")
+        self.assertEqual(first, resource_digest(project, "python-project@1"))
+
     def test_tree_rejects_env_files(self) -> None:
         project = self.root / "project"
         project.mkdir()

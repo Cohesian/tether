@@ -309,6 +309,9 @@ forms one `markdown-bundle@1` resource.
 
 - Shape: a bounded Python project directory.
 - Required member: `pyproject.toml`.
+- Runtime state under `.pixi/`, common Python tool caches, notebook
+  checkpoints, `outputs/`, `dist/`, and `build/` is excluded from the resource
+  boundary.
 - Boundary: all regular project members after global exclusions.
 - Digest: canonical tree manifest.
 - Consumer semantics: source project; execution remains explicit and outside

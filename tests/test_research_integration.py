@@ -22,14 +22,16 @@ class ResearchIntegrationTests(unittest.TestCase):
     def test_research_exposes_a_nonempty_consistent_inventory(self) -> None:
         result = validate_contributor(load_contributor(RESEARCH_PROTOCOL))
         self.assertGreater(result["resources"], 0)
-        self.assertGreaterEqual(result["routes"], result["resources"])
+        self.assertGreaterEqual(result["locations"], result["resources"])
+        self.assertEqual(result["verified_exact_local"], result["resources"])
 
     def test_contributor_protocol_discovers_one_real_paper(self) -> None:
         package = load_contributor(RESEARCH_PROTOCOL)
         discovery = discover_contributor(
             package,
             node_id=DIVISION_ID,
-            content_format="md",
+            hierarchy="documents",
+            resource_key="md",
         )
         self.assertEqual(len(discovery["discoveries"]), 1)
         self.assertEqual(
@@ -41,7 +43,8 @@ class ResearchIntegrationTests(unittest.TestCase):
         result = project_contributor(
             package,
             node_id=DIVISION_ID,
-            content_format="md",
+            hierarchy="documents",
+            resource_key="md",
         )
         expected = (
             RESEARCH_PROTOCOL.parent
@@ -52,7 +55,7 @@ class ResearchIntegrationTests(unittest.TestCase):
 
     def test_research_domain_projection_resolves_the_current_corpus(self) -> None:
         package = load_contributor(RESEARCH_PROTOCOL)
-        result = project_contributor(package, domain="documents")
+        result = project_contributor(package, hierarchy="documents")
         self.assertGreater(len(result["locations"]), 0)
         stores = {item["store"]["store"] for item in result["locations"]}
         self.assertTrue({"local", "github"} <= stores)
