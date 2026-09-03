@@ -1,5 +1,13 @@
 # Contributor onboarding
 
+This guide preserves the protocol v1 onboarding workflow for existing
+packages. New packages default to protocol v2 and should follow
+[`CONTRIBUTOR-PROTOCOL-V2.md`](CONTRIBUTOR-PROTOCOL-V2.md), beginning with:
+
+```bash
+tether contributor init . --id example --hierarchy documents
+```
+
 Tether connects identities that are owned in different places. It does not
 collapse them into one id.
 

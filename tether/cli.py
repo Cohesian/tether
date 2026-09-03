@@ -17,6 +17,7 @@ from .resolver import (
     resolve,
     resolve_discoveries,
 )
+from .resource_protocols import resource_digest, verify_resource_digest
 from .protocol import (
     check_contributor,
     contributor_template,
@@ -25,6 +26,7 @@ from .protocol import (
     inspect_contributor,
     load_contributor,
     project_contributor,
+    contributor_template_v2,
     validate_contributor,
 )
 
@@ -44,6 +46,15 @@ def _add_filters(
     parser.add_argument("--path", dest="rooted_path")
     parser.add_argument("--domain")
     parser.add_argument("--format", dest="content_format")
+    parser.add_argument(
+        "--hierarchy",
+        help="v2 hierarchy prefix, written as documents or media/videos",
+    )
+    parser.add_argument("--key", dest="resource_key", help="v2 resource key")
+    parser.add_argument("--protocol", help="v2 resource protocol id")
+    parser.add_argument(
+        "--relation", choices=("exact", "publication"), help="v2 location relation"
+    )
     parser.add_argument("--store", required=store_required)
 
 
@@ -62,18 +73,30 @@ def _filters(args: argparse.Namespace) -> dict[str, str | None]:
         "rooted_path": args.rooted_path,
         "domain": args.domain,
         "content_format": args.content_format,
+        "hierarchy": args.hierarchy,
+        "resource_key": args.resource_key,
+        "protocol": args.protocol,
+        "relation": args.relation,
         "store": args.store,
     }
 
 
 def _resource_listing(payload: dict[str, Any]) -> dict[str, Any]:
     return {
-        "version": 1,
+        "version": payload.get("version", 1),
         "contributor": payload["contributor"],
         "resources": [
             {
                 "target": item["target"],
                 "stores": sorted(store["name"] for store in item["stores"]),
+                **(
+                    {
+                        "protocol": item["protocol"],
+                        "sha256": item["sha256"],
+                    }
+                    if "protocol" in item
+                    else {}
+                ),
             }
             for item in payload["discoveries"]
         ],
@@ -97,30 +120,68 @@ def _resource_rows(payload: dict[str, Any]) -> list[list[object]]:
         target = resource["target"]
         selector = target["selector"]
         contribution = target["contribution"]
+        is_v2 = "hierarchy" in contribution
+        category = (
+            "/".join(contribution["hierarchy"])
+            if is_v2
+            else contribution["domain"]
+        )
+        resource_key = (
+            contribution["key"] if is_v2 else contribution["format"]
+        )
         locations = resource.get("locations")
         if locations is None:
             stores = resource.get("stores", []) or [""]
             locations = [{"store": store, "uri": ""} for store in stores]
         for location in locations or [{"store": "", "uri": ""}]:
-            rows.append(
-                [
-                    selector.get("path", selector.get("id", "")),
-                    contribution["domain"],
-                    contribution["format"],
-                    location.get("store", ""),
-                    location.get("uri", ""),
-                ]
-            )
+            row: list[object] = [
+                selector.get("path", selector.get("id", "")),
+                category,
+                resource_key,
+            ]
+            if is_v2:
+                row.append(resource.get("protocol", ""))
+            row.append(location.get("store", ""))
+            if is_v2:
+                row.append(location.get("relation", ""))
+            row.append(location.get("uri", ""))
+            rows.append(row)
     return rows
 
 
 def _emit_table(payload: dict[str, Any]) -> None:
     if isinstance(payload.get("resources"), list):
         print(f"Contributor: {payload.get('contributor', '-')}")
-        _print_rows(
-            ["K PATH / ID", "DOMAIN", "FORMAT", "STORE", "URI"],
-            _resource_rows(payload),
+        headers = (
+            ["K PATH / ID", "HIERARCHY", "RESOURCE", "PROTOCOL", "STORE", "RELATION", "URI"]
+            if payload.get("version") == 2
+            else ["K PATH / ID", "DOMAIN", "FORMAT", "STORE", "URI"]
         )
+        _print_rows(headers, _resource_rows(payload))
+        return
+    if (
+        payload.get("version") == 2
+        and isinstance(payload.get("hierarchies"), list)
+        and isinstance(payload.get("stores"), list)
+    ):
+        print(f"Contributor: {payload['contributor']}")
+        print("\nHierarchies")
+        _print_rows(
+            ["HIERARCHY", "INVENTORY"],
+            [
+                ["/".join(item["path"]), item["inventory"]]
+                for item in payload["hierarchies"]
+            ],
+        )
+        print("\nStores")
+        _print_rows(
+            ["STORE", "KIND", "ENABLED"],
+            [
+                [item["name"], item["kind"], item["enabled"]]
+                for item in payload["stores"]
+            ],
+        )
+        print(f"\nResources: {payload['resources']}")
         return
     if all(isinstance(payload.get(key), list) for key in ("domains", "stores", "bindings")):
         print(f"Contributor: {payload['contributor']}")
@@ -182,11 +243,18 @@ def _emit_tree(payload: dict[str, Any]) -> None:
         selector = target["selector"]
         contribution = target["contribution"]
         print(f"└─ {selector.get('path', selector.get('id', '?'))}")
-        print(f"   └─ {contribution['domain']}/{contribution['format']}")
+        if "hierarchy" in contribution:
+            branch = "/".join([*contribution["hierarchy"], contribution["key"]])
+            protocol = resource.get("protocol", "")
+            print(f"   └─ {branch} [{protocol}]")
+        else:
+            print(f"   └─ {contribution['domain']}/{contribution['format']}")
         locations = resource.get("locations")
         if locations is not None:
             for location in locations:
-                print(f"      └─ {location['store']}: {location['uri']}")
+                relation = location.get("relation")
+                suffix = f" ({relation})" if relation else ""
+                print(f"      └─ {location['store']}{suffix}: {location['uri']}")
         else:
             for store in resource.get("stores", []):
                 print(f"      └─ {store}")
@@ -202,23 +270,43 @@ def _emit(payload: dict[str, Any], output: str) -> None:
 
 
 def _initialize_contributor(
-    path: Path, contributor_id: str, domain: str, formats: list[str]
+    path: Path,
+    contributor_id: str,
+    domain: str | None,
+    formats: list[str] | None,
+    *,
+    protocol_version: int,
+    hierarchy: str | None,
 ) -> dict[str, Any]:
     root = path.resolve()
     if root.exists() and not root.is_dir():
         raise ResolverError(f"contributor path is not a directory: {root}")
     protocol = root / "contributor.toml"
-    inventory = root / "storage/local/routes.toml"
+    if protocol_version == 1:
+        if domain is None or not formats:
+            raise ResolverError("protocol v1 init requires --domain and --format")
+        protocol_text = contributor_template(contributor_id, domain, formats)
+        inventory = root / "storage/local/routes.toml"
+        inventory_text = "version = 1\n"
+    else:
+        if hierarchy is None:
+            raise ResolverError("protocol v2 init requires --hierarchy")
+        if domain is not None or formats:
+            raise ResolverError(
+                "protocol v2 init uses --hierarchy; --domain and --format are v1 options"
+            )
+        protocol_text, inventory_text, inventory_relative = contributor_template_v2(
+            contributor_id, hierarchy
+        )
+        inventory = root / inventory_relative
     conflicts = [candidate for candidate in (protocol, inventory) if candidate.exists()]
     if conflicts:
         raise ResolverError(f"contributor scaffold already exists: {conflicts[0]}")
     inventory.parent.mkdir(parents=True, exist_ok=True)
-    protocol.write_text(
-        contributor_template(contributor_id, domain, formats), encoding="utf-8"
-    )
-    inventory.write_text("version = 1\n", encoding="utf-8")
+    protocol.write_text(protocol_text, encoding="utf-8")
+    inventory.write_text(inventory_text, encoding="utf-8")
     return {
-        "version": 1,
+        "version": protocol_version,
         "contributor": contributor_id,
         "path": str(root),
         "protocol": str(protocol),
@@ -239,8 +327,10 @@ def _add_grouped_commands(commands: argparse._SubParsersAction[Any]) -> None:
     )
     _add_contributor_path(initializing)
     initializing.add_argument("--id", dest="contributor_id", required=True)
-    initializing.add_argument("--domain", required=True)
-    initializing.add_argument("--format", dest="formats", action="append", required=True)
+    initializing.add_argument("--protocol-version", type=int, choices=(1, 2), default=2)
+    initializing.add_argument("--hierarchy")
+    initializing.add_argument("--domain")
+    initializing.add_argument("--format", dest="formats", action="append")
     _add_output(initializing)
 
     showing = contributor_commands.add_parser(
@@ -280,6 +370,21 @@ def _add_grouped_commands(commands: argparse._SubParsersAction[Any]) -> None:
     _add_contributor_path(identifying)
     identifying.add_argument("--uri", required=True)
     _add_output(identifying)
+
+    digesting = resource_commands.add_parser(
+        "digest", help="calculate one local resource's protocol-defined SHA-256"
+    )
+    digesting.add_argument("location", type=Path)
+    digesting.add_argument("--protocol", required=True)
+    _add_output(digesting)
+
+    verifying = resource_commands.add_parser(
+        "verify", help="compare one local resource with an accepted SHA-256"
+    )
+    verifying.add_argument("location", type=Path)
+    verifying.add_argument("--protocol", required=True)
+    verifying.add_argument("--sha256", required=True)
+    _add_output(verifying)
 
     store = commands.add_parser("store", help="inspect contributor stores")
     store_commands = store.add_subparsers(dest="store_command", required=True)
@@ -398,7 +503,12 @@ def _run_grouped(args: argparse.Namespace) -> tuple[dict[str, Any] | None, int]:
         if args.contributor_command == "init":
             return (
                 _initialize_contributor(
-                    args.contributor, args.contributor_id, args.domain, args.formats
+                    args.contributor,
+                    args.contributor_id,
+                    args.domain,
+                    args.formats,
+                    protocol_version=args.protocol_version,
+                    hierarchy=args.hierarchy,
                 ),
                 0,
             )
@@ -408,6 +518,22 @@ def _run_grouped(args: argparse.Namespace) -> tuple[dict[str, Any] | None, int]:
         return result, 0 if result["compatibility"] == "compatible" else 1
 
     if args.command == "resource":
+        if args.resource_command == "digest":
+            return {
+                "version": 2,
+                "location": str(args.location.resolve()),
+                "protocol": args.protocol,
+                "sha256": resource_digest(args.location, args.protocol),
+            }, 0
+        if args.resource_command == "verify":
+            result = verify_resource_digest(
+                args.location, args.protocol, args.sha256
+            )
+            return {
+                "version": 2,
+                "location": str(args.location.resolve()),
+                **result,
+            }, 0 if result["valid"] else 1
         package = load_contributor(args.contributor)
         if args.resource_command == "list":
             return _resource_listing(discover_contributor(package, **_filters(args))), 0
@@ -420,7 +546,7 @@ def _run_grouped(args: argparse.Namespace) -> tuple[dict[str, Any] | None, int]:
     if args.command == "store":
         inspected = inspect_contributor(load_contributor(args.contributor))
         return {
-            "version": 1,
+            "version": inspected.get("version", 1),
             "contributor": inspected["contributor"],
             "stores": inspected["stores"],
         }, 0

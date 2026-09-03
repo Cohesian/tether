@@ -19,6 +19,18 @@ tether pull <contributor> \
   --layout <dir|map>
 ```
 
+For protocol v2, replace the v1 domain/format selectors with hierarchy and
+resource key:
+
+```bash
+tether pull <contributor> \
+  --hierarchy media/videos \
+  --key primary \
+  --store <store> \
+  --into <destination> \
+  --layout <dir|map>
+```
+
 The node selector remains optional. Omitting `--id` and `--path` selects every
 matching resource exposed by that contributor-store slice.
 
@@ -62,6 +74,38 @@ Tether copies that directory recursively. For example, a Studio
 If an inventory has no rooted path, Tether uses the node UUID as a flat stem.
 A collision is rejected rather than silently overwriting another logical
 resource.
+
+### Protocol v2 directory layout
+
+Version 2 preserves the resource key explicitly:
+
+```text
+<destination>/<K rooted path>/<resource key><protocol suffix>
+```
+
+For example, `r_md` under `markdown-file@1` becomes:
+
+```text
+<destination>/T-math/L-division/F-01-introduction/md.md
+```
+
+Tree resources use the key as their directory. A `markdown-bundle@1` is
+materialized in its canonical consumer shape:
+
+```text
+<destination>/<K rooted path>/md/
+├── document.md
+└── assets/
+    └── ...
+```
+
+Python and Loci projects retain their protocol-relative project members below
+the resource-key directory. Protocol exclusions prevent caches, local virtual
+environments, generated Loci media, and `.DS_Store` files from entering that
+snapshot.
+
+Publication locations cannot use `dir`: a YouTube URI is not presented as the
+accepted MP4 byte stream. Use `map` for publication projections.
 
 The current transfer adapters accept:
 
@@ -118,6 +162,7 @@ Both layouts produce `tether-manifest.json`.
 - `map` resources retain their source `locations` only.
 - `dir` resources additionally contain `materialized.location` and the
   resulting local file URI.
+- v2 resources retain `protocol`, `sha256`, and each location's `relation`.
 
 The manifest is a snapshot for the consumer, not a new contributor protocol
 and not an accepted K graph revision. Website can combine it with an

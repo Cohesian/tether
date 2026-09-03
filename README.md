@@ -4,41 +4,42 @@ Tether is the common bridge between K resource targets and contributor-owned
 stores. Contributors expose one declarative package; they do not need a
 dedicated bridge CLI.
 
-The target remains:
+Protocol v2 addresses one resource as:
 
 $$
-\tau=(\sigma,(c,d,f))
+a=(\sigma,c,H,p),
 $$
 
-The contributor protocol supplies the remaining storage relation:
+where $\sigma$ selects the K node, $c$ is the contributor, $H$ is an
+arbitrary-depth hierarchy, and $p$ is a resource key. K accepts a versioned
+protocol and SHA-256 digest for that address. The contributor supplies its
+physical locations:
 
 $$
-B_c\subseteq D_c\times S_c\times F
+L_c(\bar a)=\{s\mapsto\lambda_s\}.
 $$
 
-Here, domains and stores are independent axes. Explicit bindings say which
-formats from a domain are available in a store. Route inventories provide the
-K selectors and any provider-controlled URI maps.
+An exact location must reproduce the accepted digest under the resource
+protocol. A publication location, such as a transcoded YouTube video, remains
+addressable without claiming byte equality.
 
-One logical resource leaf is:
+Protocol v1 remains supported through its original target:
 
 $$
-\rho=(v,c,d,f)
+\tau=(\sigma,(c,d,f)).
 $$
 
-It has no additional name in protocol version 1. Its query form is the target
-$\tau=(\sigma,(c,d,f))$. Several stores may locate replicas of the same
-resource. A resource leaf belongs to the contributor overlay and may attach to
-any TLF node kind; it is not synonymous with a TLF `F` node.
+Version detection is explicit; Tether never silently treats a v1 format as a
+v2 resource key.
 
 The mathematical model is documented in
-[`Organization/CONTRIBUTOR-STORE-RESOLUTION.md`](../../../Organization/CONTRIBUTOR-STORE-RESOLUTION.md).
-K's canonical resource relation is documented in
-[`k-graph/docs/RESOURCE-OVERLAY.md`](../../k-graph/docs/RESOURCE-OVERLAY.md).
-The complete file contract is in
-[`docs/CONTRIBUTOR-PROTOCOL.md`](docs/CONTRIBUTOR-PROTOCOL.md).
-The frozen protocol v2 migration target is in
+[`Organization/CONTRIBUTOR-STORE-RESOLUTION.md`](../../Organization/CONTRIBUTOR-STORE-RESOLUTION.md).
+K's v2 resource relation is documented in
+[`k-graph/docs/RESOURCE-CONTRACT-V2.md`](../k-graph/docs/RESOURCE-CONTRACT-V2.md).
+The v2 contributor contract is in
 [`docs/CONTRIBUTOR-PROTOCOL-V2.md`](docs/CONTRIBUTOR-PROTOCOL-V2.md).
+The implemented v1 contract remains in
+[`docs/CONTRIBUTOR-PROTOCOL.md`](docs/CONTRIBUTOR-PROTOCOL.md).
 The identity and registration workflow is in
 [`docs/CONTRIBUTOR-ONBOARDING.md`](docs/CONTRIBUTOR-ONBOARDING.md).
 Consumer snapshots are defined in
@@ -47,14 +48,11 @@ Workspace guidance is in [`AGENTS.md`](AGENTS.md).
 
 ## Protocol versions
 
-The released CLI currently implements protocol v1. Protocol v2 changes the
+Tether 0.3.0 reads both protocol v1 and v2 packages. Protocol v2 changes the
 logical address to `(node, contributor, hierarchy, resource key)`, makes each
 resource carry a versioned protocol and SHA-256 digest, and moves store
-availability onto the resource record itself. Its specification is frozen,
-but its parser and commands belong to the next implementation phase.
-
-Until that implementation lands, the v1 examples below remain the executable
-interface and must not be interpreted as v2 packages.
+availability onto the resource record itself. Protocol v1 remains an explicit
+compatibility path while existing contributors migrate.
 
 ## Contributor package
 
@@ -64,14 +62,14 @@ Every contributor places `contributor.toml` at its workspace root:
 research/
 ├── contributor.toml
 └── storage/
-    ├── local/routes.toml
-    └── google-drive/routes.toml
+    ├── documents/resources.toml
+    └── media/videos/resources.toml
 ```
 
 The current contributors are:
 
 - [Research](../research/contributor.toml), with `documents`; and
-- [Studio](../../studio/contributor.toml), with `scenes` and `videos`.
+- [Studio](../studio/contributor.toml), with `scenes` and `videos`.
 
 TOML keeps the prototype dependency-free. The protocol itself could later be
 encoded as YAML or JSON without changing its relations.
@@ -96,15 +94,18 @@ tether
 ├── resource
 │   ├── list
 │   ├── resolve
-│   └── identify
+│   ├── identify
+│   ├── digest
+│   └── verify
 ├── store
 │   └── list
 ├── pull
 └── shell
 ```
 
-`--output table|json|tree` changes only presentation. `--format` always means
-the logical resource format such as `md`, `loci-project`, or `mp4`.
+`--output table|json|tree` changes only presentation. Protocol v2 queries use
+`--hierarchy`, `--key`, `--protocol`, `--store`, and `--relation`. The old
+`--domain` and `--format` selectors remain available for v1 packages.
 
 The original flat commands remain available as compatibility aliases while
 the prototype migrates.
@@ -114,14 +115,22 @@ the prototype migrates.
 ```bash
 tether contributor init ../research \
   --id research \
-  --domain documents \
-  --format md \
-  --format ipynb
+  --hierarchy documents
 ```
 
-The generated package contains `contributor.toml`, one local template store,
-one binding, and an empty `storage/local/routes.toml`. Add other domains,
-stores, and bindings directly in the protocol.
+The generated v2 package contains `contributor.toml`, one local store, and an
+empty `storage/documents/resources.toml`. A nested hierarchy uses slash
+notation, for example `--hierarchy media/videos`.
+
+To scaffold a legacy package explicitly:
+
+```bash
+tether contributor init ../legacy \
+  --id legacy \
+  --protocol-version 1 \
+  --domain documents \
+  --format md
+```
 
 ## Inspect and validate
 
@@ -131,10 +140,9 @@ tether contributor check ../research
 tether store list ../research
 ```
 
-`show` exposes the contributor identity and its independent domain, store, and
-binding axes. `check` reports protocol-version compatibility before validating
-the complete package. An older package requires migration; a newer package
-requires an updated Tether.
+`show` exposes contributor identity, hierarchy inventories, and stores for v2;
+it preserves domains and bindings for v1. `check` validates compatibility,
+structure, uniqueness, and every available local exact digest.
 
 ## Query resources
 
@@ -142,16 +150,17 @@ List logical resources and the stores currently available for each target:
 
 ```bash
 tether resource list ../research \
-  --domain documents \
-  --format md \
+  --hierarchy documents \
+  --key md \
   --output tree
 ```
 
 Every filter is optional. The same operation can select by:
 
 - K node `--id` or `--path`;
-- contributor `--domain`;
-- content `--format`; or
+- hierarchy prefix `--hierarchy`;
+- resource `--key` or `--protocol`;
+- exact/publication `--relation`; or
 - physical `--store`.
 
 Because the contributor path already identifies $c$, no contributor flag is
@@ -162,13 +171,23 @@ Resolve matching resources directly to URIs:
 ```bash
 tether resource resolve ../research \
   --path T-math/L-division/F-01-introduction \
-  --format md \
+  --hierarchy documents \
+  --key md \
   --output json
 ```
 
 Omit the selector to resolve a whole domain or contributor inventory. The
 result groups all physical store locations under each logical resource; it
 does not download or mutate content.
+
+Calculate or verify a protocol-defined digest before registering a resource:
+
+```bash
+tether resource digest ./paper.md --protocol markdown-file@1
+tether resource verify ./paper.md \
+  --protocol markdown-file@1 \
+  --sha256 <accepted-digest>
+```
 
 Reverse projection searches every enabled binding in the contributor package:
 

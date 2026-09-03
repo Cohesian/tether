@@ -212,7 +212,7 @@ pattern = "{path}"
     def test_check_reports_newer_protocol_without_loading_it(self) -> None:
         protocol = self.root / "contributor.toml"
         protocol.write_text(
-            protocol.read_text(encoding="utf-8").replace("version = 1", "version = 2", 1),
+            protocol.read_text(encoding="utf-8").replace("version = 1", "version = 3", 1),
             encoding="utf-8",
         )
         result = check_contributor(self.root)

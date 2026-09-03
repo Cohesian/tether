@@ -1,11 +1,10 @@
 # Contributor protocol v2
 
-Status: **frozen for implementation**
+Status: **implemented in Tether 0.3.0**
 
-This document defines Tether's target contributor package. The current CLI
-still implements protocol v1; protocol v2 becomes executable in the next
-implementation phase. During migration, Tether must read both versions and
-must never silently reinterpret one as the other.
+This document defines Tether's contributor package v2. Tether 0.3.0 reads and
+validates both protocol v1 and v2 packages and never silently reinterprets one
+as the other.
 
 The K-side authority is
 [`RESOURCE-CONTRACT-V2.md`](../../k-graph/docs/RESOURCE-CONTRACT-V2.md).

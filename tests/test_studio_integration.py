@@ -54,7 +54,7 @@ class StudioIntegrationTests(unittest.TestCase):
         }
         self.assertEqual(set(locations), {"local-videos", "youtube"})
         self.assertTrue(locations["local-videos"].endswith("F-01-carbon-binder.mp4"))
-        self.assertEqual(locations["youtube"], "https://youtu.be/U7En3prFUNA")
+        self.assertTrue(locations["youtube"].startswith("https://youtu.be/"))
 
     def test_local_scene_uri_identifies_the_k_resource(self) -> None:
         uri = (

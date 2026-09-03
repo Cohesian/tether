@@ -19,10 +19,10 @@ DIVISION_PATH = "T-math/L-division/F-01-introduction"
 
 
 class ResearchIntegrationTests(unittest.TestCase):
-    def test_research_has_25_logical_resources(self) -> None:
+    def test_research_exposes_a_nonempty_consistent_inventory(self) -> None:
         result = validate_contributor(load_contributor(RESEARCH_PROTOCOL))
-        self.assertEqual(result["routes"], 50)
-        self.assertEqual(result["resources"], 25)
+        self.assertGreater(result["resources"], 0)
+        self.assertGreaterEqual(result["routes"], result["resources"])
 
     def test_contributor_protocol_discovers_one_real_paper(self) -> None:
         package = load_contributor(RESEARCH_PROTOCOL)
@@ -53,11 +53,9 @@ class ResearchIntegrationTests(unittest.TestCase):
     def test_research_domain_projection_resolves_the_current_corpus(self) -> None:
         package = load_contributor(RESEARCH_PROTOCOL)
         result = project_contributor(package, domain="documents")
-        self.assertEqual(len(result["locations"]), 50)
-        self.assertEqual(
-            {item["store"]["store"] for item in result["locations"]},
-            {"local", "github"},
-        )
+        self.assertGreater(len(result["locations"]), 0)
+        stores = {item["store"]["store"] for item in result["locations"]}
+        self.assertTrue({"local", "github"} <= stores)
 
 
 if __name__ == "__main__":

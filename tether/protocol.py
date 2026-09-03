@@ -19,7 +19,8 @@ from .resolver import (
 )
 
 
-SUPPORTED_PROTOCOL_VERSION = 1
+SUPPORTED_PROTOCOL_VERSION = 2
+SUPPORTED_PROTOCOL_VERSIONS = (1, 2)
 
 
 def _required_string(raw: object, field: str) -> str:
@@ -76,7 +77,7 @@ def _load_toml(path: Path, label: str) -> dict[str, Any]:
         raise ResolverError(f"invalid TOML in {path}: {exc}") from exc
 
 
-def load_contributor(path: Path) -> dict[str, Any]:
+def _load_contributor_v1(path: Path) -> dict[str, Any]:
     config_path = (
         path / "contributor.toml" if path.is_dir() else path
     ).resolve()
@@ -194,41 +195,6 @@ def load_contributor(path: Path) -> dict[str, Any]:
         "domains": normalized_domains,
         "stores": normalized_stores,
         "bindings": normalized_bindings,
-    }
-
-
-def check_contributor(path: Path) -> dict[str, Any]:
-    """Report protocol compatibility, then validate supported packages."""
-
-    config_path = (path / "contributor.toml" if path.is_dir() else path).resolve()
-    raw = _load_toml(config_path, "contributor protocol")
-    version = raw.get("version")
-    if not isinstance(version, int) or isinstance(version, bool):
-        raise ResolverError("contributor protocol version must be an integer")
-    if version < SUPPORTED_PROTOCOL_VERSION:
-        return {
-            "version": 1,
-            "valid": False,
-            "compatibility": "older",
-            "protocol_version": version,
-            "supported_version": SUPPORTED_PROTOCOL_VERSION,
-            "message": "contributor protocol requires migration before validation",
-        }
-    if version > SUPPORTED_PROTOCOL_VERSION:
-        return {
-            "version": 1,
-            "valid": False,
-            "compatibility": "newer",
-            "protocol_version": version,
-            "supported_version": SUPPORTED_PROTOCOL_VERSION,
-            "message": "installed Tether is older than this contributor protocol",
-        }
-    result = validate_contributor(load_contributor(config_path))
-    return {
-        **result,
-        "compatibility": "compatible",
-        "protocol_version": version,
-        "supported_version": SUPPORTED_PROTOCOL_VERSION,
     }
 
 
@@ -407,7 +373,7 @@ def _route_available(
     return True
 
 
-def validate_contributor(package: dict[str, Any]) -> dict[str, Any]:
+def _validate_contributor_v1(package: dict[str, Any]) -> dict[str, Any]:
     route_records: set[tuple[str, str, str]] = set()
     resources: set[tuple[str, str, str]] = set()
     global_ids: dict[str, str] = {}
@@ -477,7 +443,7 @@ def validate_contributor(package: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def inspect_contributor(package: dict[str, Any]) -> dict[str, Any]:
+def _inspect_contributor_v1(package: dict[str, Any]) -> dict[str, Any]:
     return {
         "version": 1,
         "contributor": package["contributor"],
@@ -499,7 +465,7 @@ def inspect_contributor(package: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def discover_contributor(
+def _discover_contributor_v1(
     package: dict[str, Any],
     *,
     node_id: str | None = None,
@@ -613,13 +579,13 @@ def discover_contributor(
     }
 
 
-def project_contributor(
+def _project_contributor_v1(
     package: dict[str, Any], **filters: str | None
 ) -> dict[str, Any]:
-    return resolve_discoveries(discover_contributor(package, **filters))
+    return resolve_discoveries(_discover_contributor_v1(package, **filters))
 
 
-def identify_contributor(
+def _identify_contributor_v1(
     package: dict[str, Any], uri: str
 ) -> dict[str, Any]:
     matches: list[dict[str, Any]] = []
@@ -674,3 +640,198 @@ formats = [{formats_toml}]
 inventory = "storage/local/routes.toml"
 pattern = "{{path}}.{{format}}"
 '''
+
+
+from .protocol_v2 import (  # noqa: E402 - imported after v1 definitions
+    compare_k_registry_v2,
+    contributor_template_v2,
+    discover_contributor_v2,
+    identify_contributor_v2,
+    inspect_contributor_v2,
+    load_contributor_v2,
+    parse_k_contributions_v2,
+    project_contributor_v2,
+    validate_contributor_v2,
+)
+
+
+def load_contributor(path: Path) -> dict[str, Any]:
+    """Load a contributor package using its declared protocol version."""
+
+    config_path = (path / "contributor.toml" if path.is_dir() else path).resolve()
+    raw = _load_toml(config_path, "contributor protocol")
+    version = raw.get("version")
+    if version == 1:
+        return _load_contributor_v1(config_path)
+    if version == 2:
+        return load_contributor_v2(config_path, raw)
+    if not isinstance(version, int) or isinstance(version, bool):
+        raise ResolverError("contributor protocol version must be an integer")
+    raise ResolverError(
+        f"unsupported contributor protocol version: {version}; "
+        f"supported versions are {SUPPORTED_PROTOCOL_VERSIONS}"
+    )
+
+
+def check_contributor(path: Path) -> dict[str, Any]:
+    """Report compatibility and validate any supported package version."""
+
+    config_path = (path / "contributor.toml" if path.is_dir() else path).resolve()
+    raw = _load_toml(config_path, "contributor protocol")
+    version = raw.get("version")
+    if not isinstance(version, int) or isinstance(version, bool):
+        raise ResolverError("contributor protocol version must be an integer")
+    if version < min(SUPPORTED_PROTOCOL_VERSIONS):
+        return {
+            "version": SUPPORTED_PROTOCOL_VERSION,
+            "valid": False,
+            "compatibility": "older",
+            "protocol_version": version,
+            "supported_version": SUPPORTED_PROTOCOL_VERSION,
+            "supported_versions": list(SUPPORTED_PROTOCOL_VERSIONS),
+            "message": "contributor protocol requires migration before validation",
+        }
+    if version > max(SUPPORTED_PROTOCOL_VERSIONS):
+        return {
+            "version": SUPPORTED_PROTOCOL_VERSION,
+            "valid": False,
+            "compatibility": "newer",
+            "protocol_version": version,
+            "supported_version": SUPPORTED_PROTOCOL_VERSION,
+            "supported_versions": list(SUPPORTED_PROTOCOL_VERSIONS),
+            "message": "installed Tether is older than this contributor protocol",
+        }
+    package = load_contributor(config_path)
+    result = validate_contributor(package)
+    return {
+        **result,
+        "compatibility": "compatible",
+        "protocol_version": version,
+        "supported_version": SUPPORTED_PROTOCOL_VERSION,
+        "supported_versions": list(SUPPORTED_PROTOCOL_VERSIONS),
+        "legacy": version == 1,
+    }
+
+
+def validate_contributor(package: dict[str, Any]) -> dict[str, Any]:
+    if package.get("version") == 1:
+        return _validate_contributor_v1(package)
+    if package.get("version") == 2:
+        return validate_contributor_v2(package)
+    raise ResolverError("unsupported normalized contributor package version")
+
+
+def inspect_contributor(package: dict[str, Any]) -> dict[str, Any]:
+    if package.get("version") == 1:
+        return _inspect_contributor_v1(package)
+    if package.get("version") == 2:
+        return inspect_contributor_v2(package)
+    raise ResolverError("unsupported normalized contributor package version")
+
+
+def _single_v1_domain(hierarchy: object) -> str:
+    if isinstance(hierarchy, str):
+        segments = hierarchy.split("/")
+    elif isinstance(hierarchy, (list, tuple)):
+        segments = list(hierarchy)
+    else:
+        raise ResolverError("hierarchy must be a string or string list")
+    if len(segments) != 1 or not isinstance(segments[0], str):
+        raise ResolverError("protocol v1 supports only one-segment domains")
+    return segments[0]
+
+
+def discover_contributor(
+    package: dict[str, Any],
+    *,
+    node_id: str | None = None,
+    rooted_path: str | None = None,
+    domain: str | None = None,
+    content_format: str | None = None,
+    store: str | None = None,
+    hierarchy: str | list[str] | tuple[str, ...] | None = None,
+    resource_key: str | None = None,
+    protocol: str | None = None,
+    relation: str | None = None,
+) -> dict[str, Any]:
+    if package.get("version") == 1:
+        if protocol is not None or relation is not None:
+            raise ResolverError("protocol and relation filters require protocol v2")
+        if hierarchy is not None:
+            selected_domain = _single_v1_domain(hierarchy)
+            if domain is not None and domain != selected_domain:
+                raise ResolverError("domain and hierarchy filters disagree")
+            domain = selected_domain
+        if resource_key is not None:
+            if content_format is not None and content_format != resource_key:
+                raise ResolverError("format and resource-key filters disagree")
+            content_format = resource_key
+        return _discover_contributor_v1(
+            package,
+            node_id=node_id,
+            rooted_path=rooted_path,
+            domain=domain,
+            content_format=content_format,
+            store=store,
+        )
+    if package.get("version") == 2:
+        if domain is not None:
+            if hierarchy is not None:
+                raise ResolverError("use either domain or hierarchy, not both")
+            hierarchy = domain
+        if content_format is not None:
+            if resource_key is not None:
+                raise ResolverError("use either format or resource key, not both")
+            resource_key = content_format
+        return discover_contributor_v2(
+            package,
+            node_id=node_id,
+            rooted_path=rooted_path,
+            hierarchy=hierarchy,
+            resource_key=resource_key,
+            protocol=protocol,
+            store=store,
+            relation=relation,
+        )
+    raise ResolverError("unsupported normalized contributor package version")
+
+
+def project_contributor(
+    package: dict[str, Any], **filters: Any
+) -> dict[str, Any]:
+    if package.get("version") == 1:
+        return resolve_discoveries(discover_contributor(package, **filters))
+    if package.get("version") == 2:
+        normalized = {
+            "node_id": filters.get("node_id"),
+            "rooted_path": filters.get("rooted_path"),
+            "hierarchy": filters.get("hierarchy") or filters.get("domain"),
+            "resource_key": filters.get("resource_key") or filters.get("content_format"),
+            "protocol": filters.get("protocol"),
+            "store": filters.get("store"),
+            "relation": filters.get("relation"),
+        }
+        return project_contributor_v2(package, **normalized)
+    raise ResolverError("unsupported normalized contributor package version")
+
+
+def identify_contributor(package: dict[str, Any], uri: str) -> dict[str, Any]:
+    if package.get("version") == 1:
+        return _identify_contributor_v1(package, uri)
+    if package.get("version") == 2:
+        return identify_contributor_v2(package, uri)
+    raise ResolverError("unsupported normalized contributor package version")
+
+
+def compare_k_registry(
+    package: dict[str, Any], accepted: list[dict[str, Any]]
+) -> dict[str, Any]:
+    if package.get("version") != 2:
+        raise ResolverError("K registry comparison requires protocol v2")
+    return compare_k_registry_v2(package, accepted)
+
+
+def parse_k_contributions(
+    node_id: str, contributions: object
+) -> list[dict[str, Any]]:
+    return parse_k_contributions_v2(node_id, contributions)

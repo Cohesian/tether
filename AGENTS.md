@@ -18,10 +18,10 @@ content, credentials, or persistent consumer storage.
 | Protocol v2 migration target | [`docs/CONTRIBUTOR-PROTOCOL-V2.md`](docs/CONTRIBUTOR-PROTOCOL-V2.md) |
 | Contributor onboarding | [`docs/CONTRIBUTOR-ONBOARDING.md`](docs/CONTRIBUTOR-ONBOARDING.md) |
 | Pull layouts | [`docs/MATERIALIZATION.md`](docs/MATERIALIZATION.md) |
-| K resource overlay | [`../../k-graph/docs/RESOURCE-OVERLAY.md`](../../k-graph/docs/RESOURCE-OVERLAY.md) |
-| Mathematical contract | [`../../../Organization/CONTRIBUTOR-STORE-RESOLUTION.md`](../../../Organization/CONTRIBUTOR-STORE-RESOLUTION.md) |
+| K resource overlay | [`../k-graph/docs/RESOURCE-OVERLAY.md`](../k-graph/docs/RESOURCE-OVERLAY.md) |
+| Mathematical contract | [`../../Organization/CONTRIBUTOR-STORE-RESOLUTION.md`](../../Organization/CONTRIBUTOR-STORE-RESOLUTION.md) |
 | Research contributor | [`../research/contributor.toml`](../research/contributor.toml) |
-| Studio contributor | [`../../studio/contributor.toml`](../../studio/contributor.toml) |
+| Studio contributor | [`../studio/contributor.toml`](../studio/contributor.toml) |
 
 ## Invariants
 
@@ -35,11 +35,11 @@ content, credentials, or persistent consumer storage.
   and layout explicitly.
 - Contributor-specific layouts remain behind the common protocol.
 
-The invariants above describe implemented protocol v1. Work on
-`feat/resource-contract-v2` must follow the frozen v2 specification without
-silently changing v1 parsing. Under v2, the address is
-`(sigma, contributor, hierarchy, resource key)` and every accepted resource
-has a protocol id plus canonical SHA-256 digest.
+The original invariants describe protocol v1. Tether 0.3.0 also implements the
+frozen v2 specification without silently changing v1 parsing. Under v2, the
+address is `(sigma, contributor, hierarchy, resource key)` and every accepted
+resource has a protocol id plus canonical SHA-256 digest. Preserve both parser
+paths until the coordinated repository migration removes v1.
 
 ## Validation
 
@@ -49,5 +49,5 @@ PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
   python -m tether.cli contributor check ../research
 PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 \
-  python -m tether.cli contributor check ../../studio
+  python -m tether.cli contributor check ../studio
 ```

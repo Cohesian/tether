@@ -116,6 +116,61 @@ pattern = "{path}.{format}"
         self.assertEqual(json.loads(output)["resources"], 1)
         self.assertTrue((destination / f"{NODE_PATH}.md").is_file())
 
+    def test_resource_digest_reports_protocol_sha(self) -> None:
+        paper = self.root / "storage/local/T-test/L-example/F-01-paper.md"
+        status, output = self._run(
+            "resource",
+            "digest",
+            str(paper),
+            "--protocol",
+            "markdown-file@1",
+            "--output",
+            "json",
+        )
+        self.assertEqual(status, 0)
+        payload = json.loads(output)
+        self.assertEqual(len(payload["sha256"]), 64)
+
+        status, verify_output = self._run(
+            "resource",
+            "verify",
+            str(paper),
+            "--protocol",
+            "markdown-file@1",
+            "--sha256",
+            payload["sha256"],
+            "--output",
+            "json",
+        )
+        self.assertEqual(status, 0)
+        self.assertTrue(json.loads(verify_output)["valid"])
+
+    def test_contributor_init_defaults_to_v2(self) -> None:
+        generated = Path(self.temp.name) / "generated"
+        status, output = self._run(
+            "contributor",
+            "init",
+            str(generated),
+            "--id",
+            "example",
+            "--hierarchy",
+            "media/videos",
+            "--output",
+            "json",
+        )
+        self.assertEqual(status, 0)
+        self.assertEqual(json.loads(output)["version"], 2)
+        protocol = (generated / "contributor.toml").read_text(encoding="utf-8")
+        self.assertIn("version = 2", protocol)
+        self.assertTrue(
+            (generated / "storage/media/videos/resources.toml").is_file()
+        )
+        status, check_output = self._run(
+            "contributor", "check", str(generated), "--output", "json"
+        )
+        self.assertEqual(status, 0)
+        self.assertTrue(json.loads(check_output)["valid"])
+
 
 if __name__ == "__main__":
     unittest.main()
