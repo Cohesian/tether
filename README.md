@@ -37,11 +37,24 @@ K's canonical resource relation is documented in
 [`k-graph/docs/RESOURCE-OVERLAY.md`](../../k-graph/docs/RESOURCE-OVERLAY.md).
 The complete file contract is in
 [`docs/CONTRIBUTOR-PROTOCOL.md`](docs/CONTRIBUTOR-PROTOCOL.md).
+The frozen protocol v2 migration target is in
+[`docs/CONTRIBUTOR-PROTOCOL-V2.md`](docs/CONTRIBUTOR-PROTOCOL-V2.md).
 The identity and registration workflow is in
 [`docs/CONTRIBUTOR-ONBOARDING.md`](docs/CONTRIBUTOR-ONBOARDING.md).
 Consumer snapshots are defined in
 [`docs/MATERIALIZATION.md`](docs/MATERIALIZATION.md).
 Workspace guidance is in [`AGENTS.md`](AGENTS.md).
+
+## Protocol versions
+
+The released CLI currently implements protocol v1. Protocol v2 changes the
+logical address to `(node, contributor, hierarchy, resource key)`, makes each
+resource carry a versioned protocol and SHA-256 digest, and moves store
+availability onto the resource record itself. Its specification is frozen,
+but its parser and commands belong to the next implementation phase.
+
+Until that implementation lands, the v1 examples below remain the executable
+interface and must not be interpreted as v2 packages.
 
 ## Contributor package
 

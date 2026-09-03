@@ -15,6 +15,7 @@ content, credentials, or persistent consumer storage.
 |---|---|
 | Tool overview | [`README.md`](README.md) |
 | Contributor protocol | [`docs/CONTRIBUTOR-PROTOCOL.md`](docs/CONTRIBUTOR-PROTOCOL.md) |
+| Protocol v2 migration target | [`docs/CONTRIBUTOR-PROTOCOL-V2.md`](docs/CONTRIBUTOR-PROTOCOL-V2.md) |
 | Contributor onboarding | [`docs/CONTRIBUTOR-ONBOARDING.md`](docs/CONTRIBUTOR-ONBOARDING.md) |
 | Pull layouts | [`docs/MATERIALIZATION.md`](docs/MATERIALIZATION.md) |
 | K resource overlay | [`../../k-graph/docs/RESOURCE-OVERLAY.md`](../../k-graph/docs/RESOURCE-OVERLAY.md) |
@@ -33,6 +34,12 @@ content, credentials, or persistent consumer storage.
 - `pull` is the only transfer boundary and always names one store, destination,
   and layout explicitly.
 - Contributor-specific layouts remain behind the common protocol.
+
+The invariants above describe implemented protocol v1. Work on
+`feat/resource-contract-v2` must follow the frozen v2 specification without
+silently changing v1 parsing. Under v2, the address is
+`(sigma, contributor, hierarchy, resource key)` and every accepted resource
+has a protocol id plus canonical SHA-256 digest.
 
 ## Validation
 

@@ -1,5 +1,11 @@
 # Contributor protocol
 
+This document defines the currently implemented protocol v1. The frozen v2
+migration target is
+[`CONTRIBUTOR-PROTOCOL-V2.md`](CONTRIBUTOR-PROTOCOL-V2.md). Tether must retain
+explicit v1 behavior until the v2 implementation and repository migrations are
+complete.
+
 `contributor.toml` is the localized semantic bridge exposed by a content
 contributor. It declares information only. Tether supplies the executable
 query language and an explicit consumer-side materialization operation.
