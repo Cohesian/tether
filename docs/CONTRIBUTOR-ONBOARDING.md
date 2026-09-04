@@ -6,7 +6,7 @@ owned by K and the contributor without collapsing them into one id.
 | Identity | Example | Authority |
 |---|---|---|
 | K node id $v$ | UUIDv4 | K |
-| K rooted path | `T-math/L-division/F-01-introduction` | Derived from K grouping |
+| K rooted path | `T-math/L-division/E-01-introduction` | Derived from K grouping |
 | Contributor id $c$ | `research` | K registry + contributor package |
 | Hierarchy $H$ | `documents` or `media` | Contributor, admitted by K |
 | Resource key $p$ | `md`, `loci-project`, `mp4` | Contributor, admitted by K |
@@ -37,7 +37,7 @@ Choose a versioned protocol matching the resource boundary. For example,
 project tree. Validate the shape and calculate its canonical digest:
 
 ```bash
-tether resource digest ./F-01-paper.md --protocol markdown-file@1
+tether resource digest ./E-01-paper.md --protocol markdown-file@1
 ```
 
 The protocol—not ZIP metadata or a store—defines which bytes contribute to the
@@ -80,12 +80,12 @@ hierarchy = ["documents"]
 
 [[resource]]
 node_id = "11111111-1111-4111-8111-111111111111"
-path = "T-example/L-example/F-01-paper"
+path = "T-example/L-example/E-01-paper"
 key = "md"
 protocol = "markdown-file@1"
 sha256 = "<canonical-digest>"
 locations = [
-  { store = "local", relation = "exact", location = "storage/documents/local/T-example/L-example/F-01-paper.md" },
+  { store = "local", relation = "exact", location = "storage/documents/local/T-example/L-example/E-01-paper.md" },
 ]
 ```
 
@@ -98,7 +98,7 @@ for transformed or hosted representations such as a transcoded video.
 tether contributor check .
 tether resource list . --id 11111111-1111-4111-8111-111111111111
 tether resource resolve . \
-  --path T-example/L-example/F-01-paper \
+  --path T-example/L-example/E-01-paper \
   --hierarchy documents \
   --key md
 ```

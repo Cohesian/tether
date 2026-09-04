@@ -116,13 +116,13 @@ hierarchy = ["documents"]
 
 [[resource]]
 node_id = "ff647a5d-44f0-42af-9f01-abcadd04fb37"
-path = "T-math/L-division/F-01-introduction"
+path = "T-math/L-division/E-01-introduction"
 key = "md"
 protocol = "markdown-file@1"
 sha256 = "7e40c9a693f4c3b118ed77c250f0dc037f291f2141f438abe7bda7e270e74b13"
 locations = [
-  { store = "local", relation = "exact", location = "storage/documents/local/T-math/L-division/F-01-introduction.md" },
-  { store = "github", relation = "exact", uri = "https://raw.githubusercontent.com/Cohesian/research/main/storage/documents/local/T-math/L-division/F-01-introduction.md" },
+  { store = "local", relation = "exact", location = "storage/documents/local/T-math/L-division/E-01-introduction.md" },
+  { store = "github", relation = "exact", uri = "https://raw.githubusercontent.com/Cohesian/research/main/storage/documents/local/T-math/L-division/E-01-introduction.md" },
 ]
 ```
 
@@ -237,11 +237,11 @@ For a bounded directory or compound protocol:
 2. reject symbolic links and paths escaping the resource boundary;
 3. express each member as a protocol-relative POSIX path;
 4. normalize path text to Unicode NFC;
-5. sort paths by their UTF-8 byte sequence;
+5. sort paths by their UTE-8 byte sequence;
 6. hash each member's exact bytes; and
 7. hash the canonical manifest.
 
-Each manifest record is encoded as UTF-8:
+Each manifest record is encoded as UTE-8:
 
 ```text
 <path> NUL <decimal-byte-length> NUL <lowercase-file-sha256> LF
@@ -262,7 +262,7 @@ are included unless the concrete protocol narrows the boundary.
 
 ### `markdown-file@1`
 
-- Shape: one UTF-8 Markdown file.
+- Shape: one UTE-8 Markdown file.
 - Boundary: the selected `.md` file only.
 - Digest: exact file bytes.
 - Consumer semantics: Markdown with no contributor-managed companion tree.
@@ -281,8 +281,8 @@ are included unless the concrete protocol narrows the boundary.
 For example:
 
 ```text
-F-04-experimental-laboratory.md
-F-04-experimental-laboratory/
+E-04-experimental-laboratory.md
+E-04-experimental-laboratory/
 ├── condition-comparison.png
 └── energy-comparison.png
 ```
@@ -338,7 +338,7 @@ hierarchy = ["documents"]
 
 [[resource]]
 node_id = "ff647a5d-44f0-42af-9f01-abcadd04fb37"
-path = "T-math/L-division/F-01-introduction"
+path = "T-math/L-division/E-01-introduction"
 key = "md"
 protocol = "markdown-file@1"
 sha256 = "7e40c9a693f4c3b118ed77c250f0dc037f291f2141f438abe7bda7e270e74b13"

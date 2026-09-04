@@ -17,7 +17,7 @@ from tether.protocol import contributor_template
 
 
 NODE_ID = "11111111-1111-4111-8111-111111111111"
-NODE_PATH = "T-test/L-example/F-01-paper"
+NODE_PATH = "T-test/L-example/E-01-paper"
 
 
 class ContributorProtocolTests(unittest.TestCase):
@@ -152,7 +152,7 @@ inventory = "storage/drive/routes.toml"
     def test_identify_does_not_invent_an_unlisted_target(self) -> None:
         result = identify_contributor(
             load_contributor(self.protocol),
-            (self.root / "storage/local/T-test/L-example/F-99-unknown.md").as_uri(),
+            (self.root / "storage/local/T-test/L-example/E-99-unknown.md").as_uri(),
         )
         self.assertEqual(result["matches"], [])
 
@@ -178,7 +178,7 @@ inventory = "storage/drive/routes.toml"
             discover_contributor(
                 load_contributor(self.protocol),
                 node_id=NODE_ID,
-                rooted_path="T-test/L-example/F-99-other",
+                rooted_path="T-test/L-example/E-99-other",
             )
 
     def test_generated_protocol_is_a_valid_scaffold(self) -> None:

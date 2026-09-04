@@ -21,7 +21,7 @@ from tether import (
 
 
 NODE_ID = "11111111-1111-4111-8111-111111111111"
-NODE_PATH = "T-test/L-example/F-01-paper"
+NODE_PATH = "T-test/L-example/E-01-paper"
 
 
 class ContributorProtocolV2Tests(unittest.TestCase):
@@ -128,7 +128,7 @@ path = "storage/documents/resources.toml"
             discover_contributor(
                 load_contributor(self.root),
                 node_id=NODE_ID,
-                rooted_path="T-test/L-example/F-99-other",
+                rooted_path="T-test/L-example/E-99-other",
             )
 
     def test_compares_inventory_with_k_acceptance(self) -> None:

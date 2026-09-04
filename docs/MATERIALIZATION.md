@@ -45,7 +45,7 @@ logical format:
 <destination>/
 ├── T-math/
 │   └── L-division/
-│       └── F-01-introduction.md
+│       └── E-01-introduction.md
 └── tether-manifest.json
 ```
 
@@ -86,7 +86,7 @@ Version 2 preserves the resource key explicitly:
 For example, `r_md` under `markdown-file@1` becomes:
 
 ```text
-<destination>/T-math/L-division/F-01-introduction/md.md
+<destination>/T-math/L-division/E-01-introduction/md.md
 ```
 
 Tree resources use the key as their directory. A `markdown-bundle@1` is
@@ -136,7 +136,7 @@ Google Drive:
       "target": {
         "selector": {
           "id": "<uuid>",
-          "path": "T-example/L-example/F-example"
+          "path": "T-example/L-example/E-example"
         },
         "contribution": {
           "contributor": "research",
@@ -174,7 +174,7 @@ embed mapped media URIs.
 
 The `dir` layout contains contributed resource files or project directories
 only. It mirrors their K rooted addresses, but it is not the K Directory
-projection and does not recreate node YAML, TLF kinds, or graph edges.
+projection and does not recreate node YAML, TLE kinds, or graph edges.
 
 `--force` permits replacing existing destination files or project directories
 and the manifest. With no flag, Tether rejects an existing destination before

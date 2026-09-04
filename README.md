@@ -171,7 +171,7 @@ Resolve matching resources directly to URIs:
 
 ```bash
 tether resource resolve ../research \
-  --path T-math/L-division/F-01-introduction \
+  --path T-math/L-division/E-01-introduction \
   --hierarchy documents \
   --key md \
   --output json

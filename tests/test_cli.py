@@ -11,7 +11,7 @@ from tether.cli import main
 
 
 NODE_ID = "11111111-1111-4111-8111-111111111111"
-NODE_PATH = "T-test/L-example/F-01-paper"
+NODE_PATH = "T-test/L-example/E-01-paper"
 
 
 class GroupedCliTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class GroupedCliTests(unittest.TestCase):
         self.root = Path(self.temp.name) / "research"
         source = self.root / "storage/local/T-test/L-example"
         source.mkdir(parents=True)
-        (source / "F-01-paper.md").write_text("# Paper\n", encoding="utf-8")
+        (source / "E-01-paper.md").write_text("# Paper\n", encoding="utf-8")
         (self.root / "storage/local/routes.toml").write_text(
             f'''version = 1
 
@@ -117,7 +117,7 @@ pattern = "{path}.{format}"
         self.assertTrue((destination / f"{NODE_PATH}.md").is_file())
 
     def test_resource_digest_reports_protocol_sha(self) -> None:
-        paper = self.root / "storage/local/T-test/L-example/F-01-paper.md"
+        paper = self.root / "storage/local/T-test/L-example/E-01-paper.md"
         status, output = self._run(
             "resource",
             "digest",

@@ -15,7 +15,7 @@ from tether import (  # noqa: E402
 
 
 DIVISION_ID = "ff647a5d-44f0-42af-9f01-abcadd04fb37"
-DIVISION_PATH = "T-math/L-division/F-01-introduction"
+DIVISION_PATH = "T-math/L-division/E-01-introduction"
 CARBON_ID = "2a05068f-d48c-4fdd-915c-778bc8f42211"
 
 

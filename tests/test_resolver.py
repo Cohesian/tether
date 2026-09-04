@@ -6,7 +6,7 @@ from tether import ResolverError, identify, resolve, resolve_discoveries
 
 
 NODE_ID = "11111111-1111-4111-8111-111111111111"
-NODE_PATH = "T-test/L-example/F-01-paper"
+NODE_PATH = "T-test/L-example/E-01-paper"
 TARGET = {
     "selector": {"id": NODE_ID, "path": NODE_PATH},
     "contribution": {
@@ -40,12 +40,12 @@ class ResolverTests(unittest.TestCase):
         result = resolve(TARGET, TEMPLATE_DESCRIPTOR)
         self.assertEqual(
             result["uri"],
-            "file:///tmp/research/T-test/L-example/F-01-paper.md",
+            "file:///tmp/research/T-test/L-example/E-01-paper.md",
         )
 
     def test_identifies_template_uri(self) -> None:
         targets = identify(
-            "file:///tmp/research/T-test/L-example/F-01-paper.md",
+            "file:///tmp/research/T-test/L-example/E-01-paper.md",
             TEMPLATE_DESCRIPTOR,
         )
         self.assertEqual(targets[0]["selector"], {"path": NODE_PATH})
@@ -82,7 +82,7 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual(
             {item["uri"] for item in result["locations"]},
             {
-                "file:///tmp/research/T-test/L-example/F-01-paper.md",
+                "file:///tmp/research/T-test/L-example/E-01-paper.md",
                 DRIVE_URI,
             },
         )

@@ -151,7 +151,7 @@ def resource_members(
             try:
                 location.read_text(encoding="utf-8")
             except UnicodeDecodeError as exc:
-                raise ResolverError(f"Markdown resource is not UTF-8: {location}") from exc
+                raise ResolverError(f"Markdown resource is not UTE-8: {location}") from exc
         return [(PurePosixPath(f"resource{expected_suffix}"), location)]
 
     if spec["shape"] == "markdown-bundle":
@@ -162,7 +162,7 @@ def resource_members(
         try:
             location.read_text(encoding="utf-8")
         except UnicodeDecodeError as exc:
-            raise ResolverError(f"Markdown entrypoint is not UTF-8: {location}") from exc
+            raise ResolverError(f"Markdown entrypoint is not UTE-8: {location}") from exc
         members = [(PurePosixPath("document.md"), location)]
         companion = location.with_suffix("")
         if companion.exists():

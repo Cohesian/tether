@@ -54,8 +54,8 @@ most one resource for a given `(node, contributor, domain, format)` tuple. A
 second physical location is a replica of the same resource, not another
 resource.
 
-The resource is a leaf of the contributor overlay, not necessarily a TLF
-`F`. Resources may be attached to `T`, `L`, `F`, or `Fd` K nodes.
+The resource is a leaf of the contributor overlay, not necessarily a TLE
+`E`. Resources may be attached to `T`, `L`, `E`, or `Ed` K nodes.
 
 ```mermaid
 flowchart LR
@@ -191,7 +191,7 @@ version = 1
 
 [[route]]
 id = "ff647a5d-44f0-42af-9f01-abcadd04fb37"
-path = "T-math/L-division/F-01-introduction"
+path = "T-math/L-division/E-01-introduction"
 format = "md"
 ```
 
@@ -199,7 +199,7 @@ For a template binding, the pattern derives the relative location. A
 `location` field may be included as a checked assertion:
 
 ```toml
-location = "T-math/L-division/F-01-introduction.md"
+location = "T-math/L-division/E-01-introduction.md"
 ```
 
 Because the contributor package and binding have already selected $c$, $d$,
@@ -240,7 +240,7 @@ origin = "videos/media/k_graph"
 
 [[route]]
 id = "ff647a5d-44f0-42af-9f01-abcadd04fb37"
-path = "T-math/L-division/F-01-introduction"
+path = "T-math/L-division/E-01-introduction"
 format = "mp4"
 location = "exports/division_final.mp4"
 ```

@@ -10,7 +10,7 @@ from tether.protocol import check_contributor
 
 
 NODE_ID = "11111111-1111-4111-8111-111111111111"
-NODE_PATH = "T-test/L-example/F-01-paper"
+NODE_PATH = "T-test/L-example/E-01-paper"
 
 
 class MaterializationTests(unittest.TestCase):
@@ -21,7 +21,7 @@ class MaterializationTests(unittest.TestCase):
         remote = self.root / "storage/youtube"
         local.mkdir(parents=True)
         remote.mkdir(parents=True)
-        (local / "F-01-paper.md").write_text("# Paper\n", encoding="utf-8")
+        (local / "E-01-paper.md").write_text("# Paper\n", encoding="utf-8")
         routes = f'''version = 1
 
 [[route]]
@@ -123,7 +123,7 @@ inventory = "storage/youtube/routes.toml"
         self.assertEqual(list(destination.iterdir()), [destination / "tether-manifest.json"])
 
     def test_dir_layout_copies_a_local_project_directory(self) -> None:
-        project = self.root / "storage/local/T-test/L-example/F-02-scene"
+        project = self.root / "storage/local/T-test/L-example/E-02-scene"
         (project / "scenes").mkdir(parents=True)
         (project / "pyproject.toml").write_text(
             '[project]\nname = "scene"\nversion = "1.0.0"\n',
@@ -137,9 +137,9 @@ inventory = "storage/youtube/routes.toml"
 
 [[route]]
 id = "22222222-2222-4222-8222-222222222222"
-path = "T-test/L-example/F-02-scene"
+path = "T-test/L-example/E-02-scene"
 format = "loci-project"
-location = "T-test/L-example/F-02-scene"
+location = "T-test/L-example/E-02-scene"
 ''',
             encoding="utf-8",
         )
@@ -170,14 +170,14 @@ pattern = "{path}"
             domain="scenes",
             content_format="loci-project",
         )
-        exported = destination / "T-test/L-example/F-02-scene"
+        exported = destination / "T-test/L-example/E-02-scene"
         self.assertTrue((exported / "pyproject.toml").is_file())
         self.assertTrue((exported / "scenes/scene.py").is_file())
         manifest = json.loads((destination / "tether-manifest.json").read_text())
         self.assertEqual(result["resources"], 1)
         self.assertEqual(
             manifest["resources"][0]["materialized"]["location"],
-            "T-test/L-example/F-02-scene",
+            "T-test/L-example/E-02-scene",
         )
         (exported / "stale.txt").write_text("old\n", encoding="utf-8")
         materialize_contributor(
