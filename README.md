@@ -77,7 +77,14 @@ encoded as YAML or JSON without changing its relations.
 
 ## Install
 
-From this directory:
+Install the tagged release directly from GitHub:
+
+```bash
+python3 -m pip install \
+  "git+https://github.com/Cohesian/tether.git@v0.3.0"
+```
+
+For local development from this directory:
 
 ```bash
 python3 -m venv .venv

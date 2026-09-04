@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -218,6 +219,10 @@ path = "storage/documents/resources.toml"
         output = destination / NODE_PATH / "md.md"
         self.assertEqual(output.read_text(encoding="utf-8"), "# Paper\n")
         self.assertEqual(result["version"], 2)
+        manifest = json.loads((destination / "tether-manifest.json").read_text())
+        resource = manifest["resources"][0]
+        self.assertEqual(resource["protocol"], "markdown-file@1")
+        self.assertEqual(resource["sha256"], self.digest)
 
     def test_materializes_markdown_bundle_in_canonical_layout(self) -> None:
         companion = self.document.with_suffix("")

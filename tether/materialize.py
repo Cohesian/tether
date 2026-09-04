@@ -403,6 +403,14 @@ def materialize_contributor(
             manifest_resources.append(
                 {
                     "target": resource["target"],
+                    **(
+                        {
+                            "protocol": resource["protocol"],
+                            "sha256": resource["sha256"],
+                        }
+                        if package.get("version") == 2
+                        else {}
+                    ),
                     "locations": [source],
                     "materialized": {
                         "location": relative.as_posix(),
