@@ -38,7 +38,7 @@ K's v2 resource relation is documented in
 [`k-graph/docs/RESOURCE-CONTRACT-V2.md`](../k-graph/docs/RESOURCE-CONTRACT-V2.md).
 The v2 contributor contract is in
 [`docs/CONTRIBUTOR-PROTOCOL-V2.md`](docs/CONTRIBUTOR-PROTOCOL-V2.md).
-The implemented v1 contract remains in
+The legacy v1 compatibility contract remains in
 [`docs/CONTRIBUTOR-PROTOCOL.md`](docs/CONTRIBUTOR-PROTOCOL.md).
 The identity and registration workflow is in
 [`docs/CONTRIBUTOR-ONBOARDING.md`](docs/CONTRIBUTOR-ONBOARDING.md).
@@ -52,7 +52,7 @@ Tether 0.3.0 reads both protocol v1 and v2 packages. Protocol v2 changes the
 logical address to `(node, contributor, hierarchy, resource key)`, makes each
 resource carry a versioned protocol and SHA-256 digest, and moves store
 availability onto the resource record itself. Protocol v1 remains an explicit
-compatibility path while existing contributors migrate.
+legacy compatibility path.
 
 ## Contributor package
 
@@ -63,13 +63,14 @@ research/
 ├── contributor.toml
 └── storage/
     ├── documents/resources.toml
-    └── media/videos/resources.toml
+    ├── projects/code/resources.toml
+    └── projects/media/resources.toml
 ```
 
-The current contributors are:
-
-- [Research](../research/contributor.toml), with `documents`; and
-- [Studio](../studio/contributor.toml), with `scenes` and `videos`.
+The current registered contributor is
+[Research](../research/contributor.toml), with `documents`, `code`, and
+`media`. Studio may produce media delivered into Research; `produced_by`
+records that provenance without turning Studio into a contributor.
 
 TOML keeps the prototype dependency-free. The protocol itself could later be
 encoded as YAML or JSON without changing its relations.
@@ -206,8 +207,8 @@ their K rooted-path tree:
 
 ```bash
 tether pull ../research \
-  --domain documents \
-  --format md \
+  --hierarchy documents \
+  --key md \
   --store github \
   --into ./site-content/research \
   --layout dir
@@ -217,9 +218,9 @@ Provider-controlled links such as YouTube are projected into a URI map without
 pretending that the page itself is an MP4 download:
 
 ```bash
-tether pull ../../studio \
-  --domain videos \
-  --format mp4 \
+tether pull ../research \
+  --hierarchy media \
+  --key mp4 \
   --store youtube \
   --into ./site-content/videos \
   --layout map

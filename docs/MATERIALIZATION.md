@@ -12,20 +12,19 @@ Every pull selects one contributor package and exactly one store:
 
 ```bash
 tether pull <contributor> \
-  --domain <domain> \
-  --format <format> \
+  --hierarchy <hierarchy> \
+  --key <resource-key> \
   --store <store> \
   --into <destination> \
   --layout <dir|map>
 ```
 
-For protocol v2, replace the v1 domain/format selectors with hierarchy and
-resource key:
+For example:
 
 ```bash
 tether pull <contributor> \
-  --hierarchy media/videos \
-  --key primary \
+  --hierarchy media \
+  --key mp4 \
   --store <store> \
   --into <destination> \
   --layout <dir|map>
@@ -67,9 +66,10 @@ $$
 \operatorname{path}(v)
 $$
 
-Tether copies that directory recursively. For example, a Studio
-`scenes/loci-project` resource materializes its `pyproject.toml`, `loci.toml`,
-`scene.toml`, entrypoint, and local dependency closure together.
+Tether copies that directory recursively. For example, a Research
+`media/loci-project` resource produced by Studio materializes its
+`pyproject.toml`, `loci.toml`, `scene.toml`, entrypoint, and local dependency
+closure together.
 
 If an inventory has no rooted path, Tether uses the node UUID as a flat stem.
 A collision is rejected rather than silently overwriting another logical
@@ -127,8 +127,8 @@ Google Drive:
 
 ```json
 {
-  "version": 1,
-  "contributor": "studio",
+  "version": 2,
+  "contributor": "research",
   "layout": "map",
   "store": "youtube",
   "resources": [
@@ -139,14 +139,17 @@ Google Drive:
           "path": "T-example/L-example/F-example"
         },
         "contribution": {
-          "contributor": "studio",
-          "domain": "videos",
-          "format": "mp4"
+          "contributor": "research",
+          "hierarchy": ["media"],
+          "key": "mp4"
         }
       },
+      "protocol": "mp4-file@1",
+      "sha256": "<accepted-sha256>",
       "locations": [
         {
           "store": "youtube",
+          "relation": "publication",
           "uri": "https://www.youtube.com/watch?v=..."
         }
       ]

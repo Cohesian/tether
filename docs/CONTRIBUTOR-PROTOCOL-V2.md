@@ -372,7 +372,7 @@ Protocol v2 requires Tether to:
 - resolve exact and publication locations without conflating them;
 - query by UUID, rooted path, hierarchy prefix, resource key, protocol, store,
   or relation; and
-- preserve protocol v1 as an explicit compatibility adapter during migration.
+- preserve protocol v1 as an explicit legacy compatibility adapter.
 
 Tether does not upload resources, mutate K, accept proposals, or decide how a
 consumer composes Markdown, notebooks, images, and video.
@@ -404,4 +404,4 @@ The v2 implementation must:
 2. keep v1 behavior unchanged for v1 packages;
 3. never synthesize an accepted digest for v1 data;
 4. expose v1 records as legacy descriptors, not pretend they are v2; and
-5. remove v1 support only after K and every active contributor have migrated.
+5. keep any v1 support visibly isolated from the active v2 model.

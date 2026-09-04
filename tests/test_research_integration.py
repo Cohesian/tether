@@ -16,6 +16,7 @@ from tether import (  # noqa: E402
 
 DIVISION_ID = "ff647a5d-44f0-42af-9f01-abcadd04fb37"
 DIVISION_PATH = "T-math/L-division/F-01-introduction"
+CARBON_ID = "2a05068f-d48c-4fdd-915c-778bc8f42211"
 
 
 class ResearchIntegrationTests(unittest.TestCase):
@@ -59,6 +60,39 @@ class ResearchIntegrationTests(unittest.TestCase):
         self.assertGreater(len(result["locations"]), 0)
         stores = {item["store"]["store"] for item in result["locations"]}
         self.assertTrue({"local", "github"} <= stores)
+
+    def test_studio_produced_scene_is_owned_and_exposed_by_research(self) -> None:
+        package = load_contributor(RESEARCH_PROTOCOL)
+        discovery = discover_contributor(
+            package,
+            node_id=CARBON_ID,
+            hierarchy="media",
+            resource_key="loci-project",
+        )
+        self.assertEqual(len(discovery["discoveries"]), 1)
+        item = discovery["discoveries"][0]
+        self.assertEqual(item["produced_by"], "studio")
+        self.assertEqual(
+            {store["name"] for store in item["stores"]},
+            {"local", "github"},
+        )
+
+    def test_studio_produced_video_has_exact_and_publication_locations(self) -> None:
+        package = load_contributor(RESEARCH_PROTOCOL)
+        result = project_contributor(
+            package,
+            node_id=CARBON_ID,
+            hierarchy="media",
+            resource_key="mp4",
+        )
+        locations = {
+            item["store"]["store"]: (item["store"]["relation"], item["uri"])
+            for item in result["locations"]
+        }
+        self.assertEqual(set(locations), {"local", "youtube"})
+        self.assertEqual(locations["local"][0], "exact")
+        self.assertEqual(locations["youtube"][0], "publication")
+        self.assertTrue(locations["youtube"][1].startswith("https://youtu.be/"))
 
 
 if __name__ == "__main__":

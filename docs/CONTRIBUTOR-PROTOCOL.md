@@ -1,10 +1,9 @@
 # Contributor protocol
 
-This document defines the currently implemented protocol v1. The frozen v2
-migration target is
-[`CONTRIBUTOR-PROTOCOL-V2.md`](CONTRIBUTOR-PROTOCOL-V2.md). Tether must retain
-explicit v1 behavior until the v2 implementation and repository migrations are
-complete.
+This document defines the legacy protocol v1 compatibility adapter. The active
+contract is [`CONTRIBUTOR-PROTOCOL-V2.md`](CONTRIBUTOR-PROTOCOL-V2.md).
+Tether detects v1 explicitly and preserves its behavior; new contributors use
+v2.
 
 `contributor.toml` is the localized semantic bridge exposed by a content
 contributor. It declares information only. Tether supplies the executable
@@ -142,10 +141,10 @@ contributor.
 Each `[domains.<name>]` table declares one $d\in D_c$ and the complete format
 set admitted by that domain.
 
-Domains describe meaning, not storage layout. Examples include Research
-`documents` and Studio `scenes` or `videos`. Together, contributor and domain
-form the ownership namespace—and logical partition keys—for their resource
-leaves. They do not require matching physical directories.
+Domains describe meaning, not storage layout. A legacy package might expose a
+`documents` or `videos` domain. Together, contributor and domain form the
+ownership namespace—and logical partition keys—for their resource leaves.
+They do not require matching physical directories.
 
 A format normally names the resource's encoding or content shape: `md`,
 `ipynb`, `mp4`, or a compound form such as `loci-project`. A compound resource

@@ -10,21 +10,12 @@ K_ROOT = REPOSITORIES_ROOT / "k-graph"
 K_TOOLING = K_ROOT / "tooling"
 sys.path.insert(0, str(K_TOOLING))
 
-from tether import compare_k_registry, discover_contributor, load_contributor  # noqa: E402
+from tether import compare_k_registry, load_contributor  # noqa: E402
 
 try:
     from to_neo4j import load_directory_graph  # noqa: E402
 except SystemExit:
     load_directory_graph = None
-
-
-def accepted_resources(graph: object, contributor: str) -> set[tuple[str, str, str]]:
-    return {
-        (node.id, "/".join(resource.hierarchy), resource.key)
-        for node in graph.nodes.values()
-        for resource in node.contributions
-        if resource.contributor == contributor
-    }
 
 
 def accepted_records(graph: object, contributor: str) -> list[dict[str, object]]:
@@ -41,18 +32,6 @@ def accepted_records(graph: object, contributor: str) -> list[dict[str, object]]
         for resource in node.contributions
         if resource.contributor == contributor
     ]
-
-
-def exposed_resources(package_path: Path) -> set[tuple[str, str, str]]:
-    payload = discover_contributor(load_contributor(package_path))
-    return {
-        (
-            item["target"]["selector"]["id"],
-            item["target"]["contribution"]["domain"],
-            item["target"]["contribution"]["format"],
-        )
-        for item in payload["discoveries"]
-    }
 
 
 @unittest.skipIf(load_directory_graph is None, "K integration requires PyYAML")
@@ -75,11 +54,14 @@ class KRegistryIntegrationTests(unittest.TestCase):
         self.assertEqual(result["unregistered"], [])
         self.assertEqual(result["mismatched"], [])
 
-    def test_studio_exposes_every_accepted_resource(self) -> None:
-        self.assertEqual(
-            exposed_resources(REPOSITORIES_ROOT / "studio"),
-            accepted_resources(self.graph, "studio"),
-        )
+    def test_research_is_the_only_registered_contributor(self) -> None:
+        self.assertEqual(self.graph.registered_contributors, {"research"})
+        accepted = {
+            resource.contributor
+            for node in self.graph.nodes.values()
+            for resource in node.contributions
+        }
+        self.assertEqual(accepted, {"research"})
 
 
 if __name__ == "__main__":
