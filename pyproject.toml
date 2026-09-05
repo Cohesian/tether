@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cohesian-tether"
 version = "0.3.0"
-description = "Bridge K resource targets and contributor-owned stores"
+description = "Bridge graph resource targets and contributor-owned stores"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

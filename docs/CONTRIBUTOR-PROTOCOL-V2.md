@@ -6,7 +6,7 @@ This document defines Tether's contributor package v2. Tether 0.3.0 reads and
 validates both protocol v1 and v2 packages and never silently reinterprets one
 as the other.
 
-The K-side authority is
+The optional K admission authority is
 [`RESOURCE-CONTRACT-V2.md`](../../k-graph/docs/RESOURCE-CONTRACT-V2.md).
 
 ## 1. Address
@@ -19,7 +19,7 @@ $$
 
 where:
 
-- $\sigma$ selects a K node by UUID, rooted path, or both;
+- $\sigma$ selects a node in an associated graph by UUID, rooted path, or both;
 - $c$ is the contributor id;
 - $H=(h_1,\ldots,h_n)$ is a non-empty hierarchy path; and
 - $p$ is a resource key local to $(\sigma,c,H)$.
@@ -49,8 +49,8 @@ research/
 ```
 
 The physical content may live beside these inventories or in remote stores.
-The inventory hierarchy is a semantic projection and is not a copy of K's
-graph.
+The inventory hierarchy is a semantic projection and is not a copy of the
+associated graph.
 
 ## 3. Contributor descriptor
 
@@ -73,10 +73,6 @@ kind = "remote"
 enabled = true
 origin = "https://raw.githubusercontent.com/Cohesian/research/main"
 
-[stores.google-drive]
-kind = "remote"
-enabled = false
-
 [stores.youtube]
 kind = "publication"
 enabled = true
@@ -93,7 +89,8 @@ path = "storage/media/videos/resources.toml"
 Rules:
 
 - `version` is exactly `2`.
-- `contributor.id` must match the admitted K contributor id.
+- `contributor.id` is the package's stable contributor identity; a registry may
+  separately admit that identity;
 - each `stores.<id>` key is unique inside the package;
 - every inventory hierarchy is non-empty and unique;
 - inventory paths are package-relative and cannot escape the package;
@@ -134,7 +131,7 @@ depend on the position of later TOML table headers.
 
 | Field | Meaning |
 |---|---|
-| `node_id` | immutable K UUID |
+| `node_id` | immutable UUID in the associated target graph |
 | `key` | resource key $p$ |
 | `protocol` | versioned resource protocol $q$ |
 | `sha256` | canonical digest $z$ under $q$ |
@@ -144,11 +141,11 @@ depend on the position of later TOML table headers.
 
 | Field | Meaning |
 |---|---|
-| `path` | current rooted K path, used as a checked assertion and readable selector |
+| `path` | current rooted target-graph path, used as a checked assertion and readable selector |
 | `produced_by` | non-authoritative production provenance |
 
-`node_id` is required even when `path` is present. Moving a K node changes the
-path assertion, not resource identity. The combination:
+`node_id` is required even when `path` is present. Moving a target node changes
+the path assertion, not resource identity. The combination:
 
 ```text
 (node_id, contributor, hierarchy, key)
@@ -156,9 +153,10 @@ path assertion, not resource identity. The combination:
 
 must be unique across the contributor package.
 
-The inventory's `protocol` and `sha256` must equal K's accepted record for the
-same address. A contributor may retain unaccepted work elsewhere, but it must
-not expose that work as an accepted inventory record.
+When a registry accepts this resource, the inventory's `protocol` and
+`sha256` must equal the registry record for the same address. A contributor
+package may also stand independently when its associated graph and resource
+owner use the common protocol without an external admission step.
 
 ## 5. Locations
 
@@ -327,7 +325,7 @@ forms one `markdown-bundle@1` resource.
 - Consumer semantics: reproducible animation source; its rendered video is a
   separate resource.
 
-## 9. K expression and contributor expression
+## 9. Optional registry admission
 
 For this contributor record:
 
@@ -345,7 +343,7 @@ sha256 = "7e40c9a693f4c3b118ed77c250f0dc037f291f2141f438abe7bda7e270e74b13"
 locations = []
 ```
 
-K contains only the accepted projection:
+When K admits the contributor, it contains only the accepted projection:
 
 ```yaml
 contributions:
@@ -357,7 +355,8 @@ contributions:
 ```
 
 The join is valid only when contributor, hierarchy, resource key, protocol,
-and digest agree for the same K node UUID.
+and digest agree for the same target-node UUID. An independent package, such
+as Architecture's A-graph package, remains valid without this K projection.
 
 ## 10. Tether responsibilities
 
@@ -365,22 +364,23 @@ Protocol v2 requires Tether to:
 
 - parse and validate contributor descriptors and hierarchy inventories;
 - reject duplicate resource addresses;
-- interpret `c_`, `h_`, and `r_` K keys;
+- interpret `c_`, `h_`, and `r_` keys when comparing a K projection;
 - validate protocol ids and SHA-256 syntax;
 - calculate file and tree digests;
-- compare contributor records with accepted K records;
+- compare contributor records with accepted K records when requested;
 - resolve exact and publication locations without conflating them;
 - query by UUID, rooted path, hierarchy prefix, resource key, protocol, store,
   or relation; and
 - preserve protocol v1 as an explicit legacy compatibility adapter.
 
-Tether does not upload resources, mutate K, accept proposals, or decide how a
-consumer composes Markdown, notebooks, images, and video.
+Tether does not upload resources, mutate a target graph, admit contributors,
+accept proposals, or decide how a consumer composes Markdown, notebooks,
+images, and video.
 
 ## 11. Consumer projection
 
 Materialization and presentation remain downstream choices. A consumer may
-compose several resources attached to the same K node—for example a Markdown
+compose several resources attached to the same target node—for example a Markdown
 bundle with a YouTube publication—without modifying either resource's logical
 identity.
 

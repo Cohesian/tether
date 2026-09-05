@@ -1,8 +1,8 @@
 # Cohesian Tether
 
-Tether is the common bridge between K resource targets and contributor-owned
-stores. Contributors expose one declarative package; they do not need a
-dedicated bridge CLI.
+Tether is the common bridge between graph resource targets and
+contributor-owned stores. Contributors expose one declarative package; they do
+not need a dedicated bridge CLI or prior admission to a registry.
 
 Protocol v2 addresses one resource as:
 
@@ -10,10 +10,9 @@ $$
 a=(\sigma,c,H,p),
 $$
 
-where $\sigma$ selects the K node, $c$ is the contributor, $H$ is an
-arbitrary-depth hierarchy, and $p$ is a resource key. K accepts a versioned
-protocol and SHA-256 digest for that address. The contributor supplies its
-physical locations:
+where $\sigma$ selects a node in the associated graph, $c$ is the contributor,
+$H$ is an arbitrary-depth hierarchy, and $p$ is a resource key. The contributor
+declares a versioned protocol, SHA-256 digest, and physical locations:
 
 $$
 L_c(\bar a)=\{s\mapsto\lambda_s\}.
@@ -71,6 +70,8 @@ The current registered contributor is
 [Research](../research/contributor.toml), with `documents`, `code`, and
 `media`. Studio may produce media delivered into Research; `produced_by`
 records that provenance without turning Studio into a contributor.
+Architecture also exposes an independent `architecture` package for A-graph
+resources without joining K's admitted contributor set.
 
 TOML keeps the prototype dependency-free. The protocol itself could later be
 encoded as YAML or JSON without changing its relations.
@@ -165,7 +166,7 @@ tether resource list ../research \
 
 Every filter is optional. The same operation can select by:
 
-- K node `--id` or `--path`;
+- target node `--id` or `--path`;
 - hierarchy prefix `--hierarchy`;
 - resource `--key` or `--protocol`;
 - exact/publication `--relation`; or

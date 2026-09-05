@@ -1,15 +1,16 @@
 # Contributor onboarding
 
 This guide introduces a protocol v2 contributor. Tether connects identities
-owned by K and the contributor without collapsing them into one id.
+owned by a target graph and the contributor without collapsing them into one
+id. Registry admission, when needed, is a separate relationship.
 
 | Identity | Example | Authority |
 |---|---|---|
-| K node id $v$ | UUIDv4 | K |
-| K rooted path | `T-math/L-division/E-01-introduction` | Derived from K grouping |
-| Contributor id $c$ | `research` | K registry + contributor package |
-| Hierarchy $H$ | `documents` or `media` | Contributor, admitted by K |
-| Resource key $p$ | `md`, `loci-project`, `mp4` | Contributor, admitted by K |
+| Target node id $v$ | UUIDv4 | Associated graph |
+| Target rooted path | `T-math/L-division/E-01-introduction` | Derived from graph grouping |
+| Contributor id $c$ | `research` | Contributor package; optionally admitted by a registry |
+| Hierarchy $H$ | `documents` or `media` | Contributor |
+| Resource key $p$ | `md`, `loci-project`, `mp4` | Contributor |
 | Protocol $q$ | `markdown-file@1` | Shared Tether registry |
 | Digest $z$ | lowercase SHA-256 | Calculated under $q$ |
 | Store id $s$ | `local`, `github`, `youtube` | Contributor |
@@ -43,10 +44,10 @@ tether resource digest ./E-01-paper.md --protocol markdown-file@1
 The protocol—not ZIP metadata or a store—defines which bytes contribute to the
 digest.
 
-## 3. Register the accepted address in K
+## 3. Optionally register the accepted address in K
 
-K owns the node UUID and admits the contributor id. Its node records the
-accepted resource:
+When the target is K, K owns the node UUID and admits the contributor id. Its
+node records the accepted resource:
 
 ```yaml
 id: 11111111-1111-4111-8111-111111111111
@@ -66,7 +67,9 @@ $$
 $$
 
 Acceptance is currently a coordinated manual change. A future proposal surface
-may prepare requests, but K remains the authority for topology and acceptance.
+may prepare requests, but K remains the authority for its topology and
+acceptance. Contributors associated with another graph can use the same package
+without this K step.
 
 ## 4. Publish contributor-owned locations
 

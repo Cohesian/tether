@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Maintain Tether, the common dependency-free bridge between K resource targets
-and contributor-owned stores.
+Maintain Tether, the common dependency-free bridge between graph resource
+targets and contributor-owned stores.
 
 Tether owns protocol interpretation, URI projection, and explicit
-consumer-directed materialization. It does not own K topology, contributor
+consumer-directed materialization. It does not own target topology, contributor
 content, credentials, or persistent consumer storage.
 
 ## Read first
@@ -25,7 +25,7 @@ content, credentials, or persistent consumer storage.
 ## Invariants
 
 - $a=(\sigma,c,H,p)$ is the active resource address.
-- The immutable logical identity uses the K UUID, contributor, hierarchy, and
+- The immutable logical identity uses the target-node UUID, contributor, hierarchy, and
   resource key.
 - Protocol and canonical SHA-256 define the accepted resource bytes.
 - Exact and publication locations remain distinct.

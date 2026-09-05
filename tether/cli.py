@@ -443,7 +443,7 @@ def _add_legacy_commands(commands: argparse._SubParsersAction[Any]) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Bridge Cohesian K resource targets and contributor stores"
+        description="Bridge Cohesian graph resource targets and contributor stores"
     )
     commands = parser.add_subparsers(
         dest="command",

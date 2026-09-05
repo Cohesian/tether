@@ -168,13 +168,14 @@ Both layouts produce `tether-manifest.json`.
 - v2 resources retain `protocol`, `sha256`, and each location's `relation`.
 
 The manifest is a snapshot for the consumer, not a new contributor protocol
-and not an accepted K graph revision. Website can combine it with an
-independently obtained K snapshot, choose how to render local documents, and
-embed mapped media URIs.
+and not an accepted graph revision. A website can combine it with an
+independently obtained graph snapshot, choose how to render local documents,
+and embed mapped media URIs.
 
 The `dir` layout contains contributed resource files or project directories
-only. It mirrors their K rooted addresses, but it is not the K Directory
-projection and does not recreate node YAML, TLE kinds, or graph edges.
+only. It mirrors their target-graph rooted addresses, but it is not a graph
+Directory projection and does not recreate node YAML, TLE kinds, or graph
+edges.
 
 `--force` permits replacing existing destination files or project directories
 and the manifest. With no flag, Tether rejects an existing destination before
